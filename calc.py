@@ -47,7 +47,7 @@ class Calculator:
                     f"Expected ')' but got '{'<EOL>' if not self.line else self.line[0]}'")
             return result
         raise SyntaxError(
-            f"Expected number or '(' but got '{'<EOL>' if not self.line else self.line[0]}'")
+            f"Expected number or '-' or '(' but got '{'<EOL>' if not self.line else self.line[0]}'")
 
     def _is_next(self, regexp: str) -> bool:
         m = re.match(r'\s*' + regexp + r'\s*', self.line)

@@ -36,7 +36,7 @@ Unfortunately, there are many conflicting notations for EBNF. The notation I'm u
 
 Each rule, named by the left-hand-side of the ``::=``, becomes a Python function to implement that rule.
 The rules are setup in a way that ensures that the correct operator precedence is respected. For example,
-with the expression ``1+2*3``, tha calculator will perform the multiplication first and give a value of 7.
+with the expression ``1+2*3``, the calculator will perform the multiplication first and give a value of 7.
 
 First, I start off with the constructor:
 
@@ -137,9 +137,41 @@ The only complicating factor here is that the user might divide by zero. One opt
 allow the ``ZeroDivisionError`` exception to propagate upwards. The other option is to use one of the special
 floating-point representations for non-numeric values. Normally this would be ``-inf`` for negative infinity (e.g. -1/0),
 ``inf`` for positive infinity (e.g. 1/0), or ``nan`` (not a number) for 0/0. I take a shortcut here and just
-use nan for all three.
+use ``nan`` for all three.
 
-While the ``Calculator`` class implements the calculator, you can try out the calculator by running ``calc_runner.py``:
+The last rule, for numbers, parentheses, and unary negation is implemented in the ``_factor`` method:
+
+.. code-block:: python
+
+    def _factor(self) -> float:  # factor ::= <number> | '(' exp ')' | '-' factor
+        if self._is_next(r'[0-9]*\.?[0-9]+'):
+            return float(self.current) if '.' in self.current else int(self.current)
+        if self._is_next('-'):
+            return -self._factor()
+        if self._is_next('[(]'):
+            result = self._exp()
+            if not self._is_next('[)]'):
+                raise SyntaxError(
+                    f"Expected ')' but got '{'<EOL>' if not self.line else self.line[0]}'")
+            return result
+        raise SyntaxError(
+            f"Expected number or '(' but got '{'<EOL>' if not self.line else self.line[0]}'")
+
+There are three tests, for the three different possibilities that are legal at this point in the parse.
+The first is a number, and the regular expression in the call to ``is_next`` will match any sequence of
+digits that contains an optional decimal point. I can tell if it's a float by whether a decimal point
+was matched or not. I could just always assume it's a float and simply just have ``return float(self.current)``,
+but it's nicer that 2 + 2 gives the integer result 4 rather than the float 4.0.
+Unary minus is pretty straight-forward, as is parentheses, except for the fact that I have to ensure there
+is a matching close parenthesis (")"), otherwise it's a syntax error.
+
+Finally, there's a catch-all syntax error. Both syntax error messages are a little but complicated by the fact
+that I want to say what the offending character is that I wasn't expecting. This is usually the next
+character in the line, but it could be that there `is` no next character in the line! In which case I
+complain that the I got ``<EOL>`` (End-Of-Line) instead of what I was expecting.
+
+While the ``Calculator`` class just implements the calculator, you can try out the calculator
+interactively by running ``calc_runner.py``:
 
 .. code-block:: python
 
@@ -156,17 +188,21 @@ While the ``Calculator`` class implements the calculator, you can try out the ca
                 print(f'Syntax Error: {e.msg}')
 
 
-    def bad_repl_do_not_use():
-        while True:
-            print(eval(input('> ')))
-
-
     if __name__ == '__main__':
         repl()
         #bad_repl_do_not_use()  # Can do: __import__('os').system('dir')
 
 The ``repl`` function (read-evaluate-print-loop) simply reads a line of input and then calls the calculator
-to parse it.
+to parse it, and prints the result. If the result was a syntax error, then catch that and print it instead.
+
+All this code to implement a calculator might seem overkill when it can be done in python with a short snippet:
+
+.. code-block:: python
+
+    def bad_repl_do_not_use():
+        while True:
+            print(eval(input('> ')))
+
 
 Since Python has a built-in ``eval`` function for evaluating expressions, it is possible to implement
 a repl with the entire functionality of the Python expression parser,
