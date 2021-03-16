@@ -165,7 +165,7 @@ but it's nicer that 2 + 2 gives the integer result 4 rather than the float 4.0.
 Unary minus is pretty straight-forward, as is parentheses, except for the fact that I have to ensure there
 is a matching close parenthesis (")"), otherwise it's a syntax error.
 
-Finally, there's a catch-all syntax error. Both syntax error messages are a little but complicated by the fact
+Finally, there's a catch-all syntax error. Both syntax error messages are a little bit complicated by the fact
 that I want to say what the offending character is that I wasn't expecting. This is usually the next
 character in the line, but it could be that there `is` no next character in the line! In which case I
 complain that the I got ``<EOL>`` (End-Of-Line) instead of what I was expecting.
